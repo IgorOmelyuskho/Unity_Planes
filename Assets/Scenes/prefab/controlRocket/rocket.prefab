@@ -217,7 +217,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1148350815824479751}
   serializedVersion: 2
-  m_Mass: 100
+  m_Mass: 120
   m_Drag: 0
   m_AngularDrag: 0
   m_UseGravity: 1
@@ -272,15 +272,15 @@ MonoBehaviour:
   isPropPlane: 0
   tractionVectorControlEnabled: 1
   hp: 100
-  tractionVectorControlCoeff: 1
-  maxControlPlaneAngle: 75
+  tractionVectorControlCoeff: 0.2
+  maxControlPlaneAngle: 45
   maxControlPlaneRotationSpeed: 5
-  engineThrustCoeff: 55
+  engineThrustCoeff: 155
   engineThrustKG: 0
-  controlPlaneDragCoeff: 0.08
-  upDownCorpusDragCoeff: 0.045
-  leftRightCorpusDragCoeff: 0.045
-  forwardDragCoeff: 0.008
+  controlPlaneDragCoeff: 0.02
+  upDownCorpusDragCoeff: 0.035
+  leftRightCorpusDragCoeff: 0.035
+  forwardDragCoeff: 0.01
   aileronsDragCoeff: 0
   liftingForceCoeff: 0
   upDownWingDragCoeff: 0
