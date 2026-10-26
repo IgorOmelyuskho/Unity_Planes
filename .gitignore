@@ -13,6 +13,10 @@
 /[Ll]ocal[Cc]ache/
 /[Uu]nityGenerated/
 
+# Unity auto-generated / auto-updated files
+/[Aa]ssets/**/[Ll]ighting[Dd]ata.asset
+ProjectSettings/PackageManagerSettings.asset
+
 # Asset store tools and crash reports
 /[Aa]ssets/AssetStoreTools*
 sysinfo.txt
