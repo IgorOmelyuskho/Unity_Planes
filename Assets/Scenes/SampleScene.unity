@@ -1323,7 +1323,7 @@ MonoBehaviour:
   rocket3: {fileID: 5469044686963139146, guid: 8017361f092a2f14eb79345ba3f80af6, type: 3}
   controlRocket: {fileID: 1148350815824479751, guid: e64293d5161f41645998c1354ea6a2d5,
     type: 3}
-  controlRocket2: {fileID: 7816604504285821044, guid: b5b1559167081b3479aae41a386d8c02,
+  controlRocket2: {fileID: 1148350815824479751, guid: 6752e938823303e4aa5814afcb966f77,
     type: 3}
   speed: 0
   lookAtPlayer: 1
@@ -5513,7 +5513,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1698825972
 Transform:
   m_ObjectHideFlags: 0
@@ -6025,6 +6025,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  aimingType: 0
   directionCircleInWorldPosition: {x: 0, y: 0, z: 0}
   isLaunchedRocket: 0
   target: {fileID: 0}
@@ -7024,6 +7025,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  aimingType: 0
   directionCircleInWorldPosition: {x: 0, y: 0, z: 0}
   isLaunchedRocket: 0
   target: {fileID: 1901476846}
@@ -7190,7 +7192,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 126
   m_CollisionDetection: 0
 --- !u!120 &2043696551
 LineRenderer:
@@ -7295,7 +7297,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2043696548}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10, y: 123.8, z: 10}
+  m_LocalPosition: {x: 500, y: 500, z: 500}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_Children:
   - {fileID: 1992933761}

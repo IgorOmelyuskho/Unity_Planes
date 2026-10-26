@@ -55,7 +55,7 @@ public class antiaircraft : MonoBehaviour
                 }
                 catch
                 {
-                    targetSpeed = target.GetComponent<controlObject>().rb.velocity;
+                    targetSpeed = target.GetComponent<controlObject>().rb.linearVelocity;
                     targetAcceleration = target.GetComponent<controlObject>().actualAcceleration;
                     targetJerk = target.GetComponent<controlObject>().actualJerk;
                 }

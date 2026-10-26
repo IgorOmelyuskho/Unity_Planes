@@ -1,6 +1,13 @@
 ﻿using System.Collections;
 using UnityEngine;
 
+public enum AimingType
+{
+ Direct,
+ Lead,
+ CLOS      // Наведение по линии визирования (Command Line-of-Sight)
+}
+
 public class rocketLauncher : MonoBehaviour
 {
     public GameObject rocket;
@@ -25,7 +32,7 @@ public class rocketLauncher : MonoBehaviour
         //while (true)
         {
             yield return new WaitForSeconds(delay);
-            launchRocket(controlRocket, Color.blue);
+            //launchRocket(controlRocket, Color.blue);
             //launchRocket(controlRocket2, false);
         }
     }
@@ -42,8 +49,9 @@ public class rocketLauncher : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.X) && Shared.player)
         {
-            launchRocket(controlRocket, Color.blue);
-            //launchRocket(controlRocket2, Color.green);
+            launchRocket(controlRocket, Color.blue, AimingType.Direct);
+            //launchRocket(controlRocket2, Color.green, AimingType.CLOS);
+            launchRocket(controlRocket2, Color.magenta, AimingType.Lead);
             //launchRocket(controlRocket2);
 
             Shared.player.GetComponent<controlObject>().hp = 100;
@@ -59,12 +67,13 @@ public class rocketLauncher : MonoBehaviour
         /*transform.Translate(0, 0, speed);*/
     }
 
-    void launchRocket(GameObject rocket, Color trailColor)
+    void launchRocket(GameObject rocket, Color trailColor, AimingType aimingType)
     {
         GameObject rocketClone = Instantiate(rocket, new Vector3(transform.position.x, transform.position.y, transform.position.z) - transform.up * 1.0f, transform.rotation);
         rocketClone.GetComponent<controlObject>().isLaunchedRocket = true;
-        rocketClone.GetComponent<controlObject>().rb.velocity = Vector3.zero;
+        rocketClone.GetComponent<controlObject>().rb.linearVelocity = Vector3.zero;
         rocketClone.GetComponent<controlObject>().target = Shared.player;
+        rocketClone.GetComponent<controlObject>().aimingType = aimingType;
         //rocketClone.GetComponent<controlObject>().rocketOwner = gameObject;
         Shared.player.GetComponent<controlObject>().addObjToInfoNearObjList(rocketClone);
         Shared.hitWithBulletOrRocketObjects.Add(rocketClone);

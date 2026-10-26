@@ -168,7 +168,7 @@ public class Quadcopter : MonoBehaviour
 
         addCorpusForces();
 
-        spd = rb.velocity;
+        spd = rb.linearVelocity;
 
         holdAnglePIDController.Update(aCoeffHoldAngle, pCoeffHoldAngle, dCoeffHoldAngle, iCoeffHoldAngle, maxSumForPIDController);
     }
@@ -224,16 +224,16 @@ public class Quadcopter : MonoBehaviour
 
     void addCorpusForces()
     {
-        float upDownDrag = rb.velocity.magnitude * upDownCorpusDragCoeff;
-        Vector3 forceUpDownPlane = upDownDrag * (Vector3.Reflect(rb.velocity, transform.up) - rb.velocity);
+        float upDownDrag = rb.linearVelocity.magnitude * upDownCorpusDragCoeff;
+        Vector3 forceUpDownPlane = upDownDrag * (Vector3.Reflect(rb.linearVelocity, transform.up) - rb.linearVelocity);
         rb.AddForceAtPosition(forceUpDownPlane, transform.position);
 
-        float leftRightnDrag = rb.velocity.magnitude * leftRightCorpusDragCoeff;
-        Vector3 forceLeftRightPlane = leftRightnDrag * (Vector3.Reflect(rb.velocity, transform.right) - rb.velocity);
+        float leftRightnDrag = rb.linearVelocity.magnitude * leftRightCorpusDragCoeff;
+        Vector3 forceLeftRightPlane = leftRightnDrag * (Vector3.Reflect(rb.linearVelocity, transform.right) - rb.linearVelocity);
         rb.AddForceAtPosition(forceLeftRightPlane, transform.position);
 
-        float fwdBackCorpusDrag = rb.velocity.magnitude * fwdBackCorpusDragCoeff;
-        Vector3 forceForwardBackPlane = fwdBackCorpusDrag * (Vector3.Reflect(rb.velocity, transform.forward) - rb.velocity);
+        float fwdBackCorpusDrag = rb.linearVelocity.magnitude * fwdBackCorpusDragCoeff;
+        Vector3 forceForwardBackPlane = fwdBackCorpusDrag * (Vector3.Reflect(rb.linearVelocity, transform.forward) - rb.linearVelocity);
         rb.AddForceAtPosition(forceForwardBackPlane, transform.position);
     }
 
@@ -289,7 +289,7 @@ public class Quadcopter : MonoBehaviour
 
     void holdAltitude(float altitude)
     {
-        PDResult = Shared.PDController(altitude - transform.position.y, -rb.velocity.y, pCoeffHoldAltitude, dCoeffHoldAltitude);
+        PDResult = Shared.PDController(altitude - transform.position.y, -rb.linearVelocity.y, pCoeffHoldAltitude, dCoeffHoldAltitude);
         float power = Mathf.Clamp(PDResult, 0, 100);
         leftBackEngine.Power = power;
         leftFwdEngine.Power = power;

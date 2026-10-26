@@ -16,6 +16,7 @@ public class controlObject : MonoBehaviour
     public AnimationCurve rollSmoothingPIfNeedTurnToTargetCurve;
     public AnimationCurve rollSmoothingDIfNeedTurnToTargetCurve;
     public AnimationCurve mouseDeltaCurve;
+    public AimingType aimingType;
 
     Camera cam;
     float mouseSensitivity = 1;
@@ -190,8 +191,8 @@ public class controlObject : MonoBehaviour
 
         rb = GetComponent<Rigidbody>();
         if (!isLaunchedRocket)
-            rb.velocity = transform.forward * initSpeed;
-        prevVelocity = rb.velocity;
+            rb.linearVelocity = transform.forward * initSpeed;
+        prevVelocity = rb.linearVelocity;
         prevAcceleration = Vector3.zero;
         rb.maxAngularVelocity = 20;
         rb.inertiaTensor = tensor1 * rb.mass;
@@ -219,8 +220,8 @@ public class controlObject : MonoBehaviour
             calcHP();
         }
 
-        velocity = rb.velocity;
-        velocityMaggnitude = rb.velocity.magnitude;
+        velocity = rb.linearVelocity;
+        velocityMaggnitude = rb.linearVelocity.magnitude;
 
         if ((moveLeft || moveRight || moveDown || moveUp) && isPlayer/* && !needTurnToTarget*/)
             rotateControlPlaneByKey();
@@ -242,7 +243,7 @@ public class controlObject : MonoBehaviour
 
         localAngularVelocity = transform.InverseTransformDirection(rb.angularVelocity) * Mathf.Rad2Deg; // deg / sec
 
-        rb.angularDrag = 1f * angularDragCoeff * rb.velocity.magnitude + 1f;
+        rb.angularDamping = 1f * angularDragCoeff * rb.linearVelocity.magnitude + 1f;
 
         // use for launchedRocket
         destroyRocket();
@@ -321,6 +322,13 @@ public class controlObject : MonoBehaviour
     {
         renderTransformGizmos();
         renderVelocityGizmos();
+        
+        if (isLaunchedRocket && target && aimPosition != Vector3.zero)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(aimPosition, 5f); // радиус 5
+            //Gizmos.DrawSphere(transform.position + transform.forward.normalized * 15, 1f); // радиус 5
+        }
 
         //Gizmos.DrawRay(transform.position - transform.forward * distForAddControlPlaneForce, transform.up);
 
@@ -366,7 +374,7 @@ public class controlObject : MonoBehaviour
                 textForDist.GetComponent<Text>().text = "dist: " + dist.ToString("0");
 
                 GameObject textForVelocity = obj.transform.GetChild(2).gameObject;
-                float velocity = obj.GetComponent<InfoNearObjClass>().gameObj.GetComponent<controlObject>().rb.velocity.magnitude * 3.6f;
+                float velocity = obj.GetComponent<InfoNearObjClass>().gameObj.GetComponent<controlObject>().rb.linearVelocity.magnitude * 3.6f;
                 textForVelocity.GetComponent<Text>().color = textColor;
                 textForVelocity.GetComponent<Text>().text = "spd: " + velocity.ToString("0");
 
@@ -497,7 +505,7 @@ public class controlObject : MonoBehaviour
         {
             counterForShoot = 0;
             Bullet2 bulletClone = Instantiate(bullet, new Vector3(transform.position.x, transform.position.y, transform.position.z) + transform.forward * 1, transform.rotation);
-            bulletClone.speed = bulletClone.initBulletSpeed * new Vector3(transform.forward.x, transform.forward.y, transform.forward.z) + rb.velocity;
+            bulletClone.speed = bulletClone.initBulletSpeed * new Vector3(transform.forward.x, transform.forward.y, transform.forward.z) + rb.linearVelocity;
             bulletClone.owner = gameObject;
         }
     }
@@ -509,7 +517,7 @@ public class controlObject : MonoBehaviour
             GameObject rocketClone = Instantiate(rocket, new Vector3(transform.position.x, transform.position.y, transform.position.z) - transform.up * 1.0f, transform.rotation);
             lastLaunchedRocket = rocketClone;
             rocketClone.GetComponent<controlObject>().isLaunchedRocket = true;
-            rocketClone.GetComponent<controlObject>().rb.velocity = rb.velocity;
+            rocketClone.GetComponent<controlObject>().rb.linearVelocity = rb.linearVelocity;
             rocketClone.GetComponent<controlObject>().target = target;
             rocketClone.GetComponent<controlObject>().rocketOwner = gameObject;
             addObjToInfoNearObjList(rocketClone);
@@ -537,12 +545,12 @@ public class controlObject : MonoBehaviour
         // destroy If Target Near
         if (isLaunchedRocket && target)
         {
-            Vector3 forward = transform.TransformDirection(rb.velocity);
+            Vector3 forward = transform.TransformDirection(rb.linearVelocity);
             Vector3 toOther = target.transform.position - transform.position;
 
             float distWhenRocketHitTarget = 20;
 
-            float angle = Vector3.Angle(target.transform.position - transform.position, rb.velocity);
+            float angle = Vector3.Angle(target.transform.position - transform.position, rb.linearVelocity);
 
             if (/*Vector3.Dot(forward, toOther) < 0*/ angle > 190 && Vector3.Distance(transform.position, target.transform.position) < 100 ||
                 Vector3.Distance(transform.position, target.transform.position) < distWhenRocketHitTarget) 
@@ -552,9 +560,9 @@ public class controlObject : MonoBehaviour
 
                 for (var j = 0; j < iterationCt; j++)
                 {
-                    Vector3 rocketPosition = transform.position + (rb.velocity.magnitude / iterationCt) * rb.velocity.normalized * j * Time.fixedDeltaTime;
+                    Vector3 rocketPosition = transform.position + (rb.linearVelocity.magnitude / iterationCt) * rb.linearVelocity.normalized * j * Time.fixedDeltaTime;
                     controlObject targetObj = target.GetComponent<controlObject>();
-                    Vector3 targetPosition = target.transform.position + (targetObj.rb.velocity.magnitude / iterationCt) * targetObj.rb.velocity.normalized * j * Time.fixedDeltaTime;
+                    Vector3 targetPosition = target.transform.position + (targetObj.rb.linearVelocity.magnitude / iterationCt) * targetObj.rb.linearVelocity.normalized * j * Time.fixedDeltaTime;
                     float distance = Vector3.Distance(rocketPosition, targetPosition);
                     if (distance < minDistance)
                         minDistance = distance;
@@ -589,14 +597,14 @@ public class controlObject : MonoBehaviour
         {
             Vector3 targetSpeed;
 
-            if (target.GetComponent<Rigidbody>().velocity != null)
-                targetSpeed = target.GetComponent<Rigidbody>().velocity;
+            if (target.GetComponent<Rigidbody>().linearVelocity != null)
+                targetSpeed = target.GetComponent<Rigidbody>().linearVelocity;
             else if (target.GetComponent<target>().calculatedSpeed != null)
                 targetSpeed = target.GetComponent<target>().calculatedSpeed;
             else
                 targetSpeed = Vector3.zero;
 
-            Vector3 aimPosition = Shared.CalculateAim(target.transform.position, targetSpeed, transform.position, bullet.initBulletSpeed, rb.velocity, target.GetComponent<controlObject>().actualAcceleration);
+            Vector3 aimPosition = Shared.CalculateAim(target.transform.position, targetSpeed, transform.position, bullet.initBulletSpeed, rb.linearVelocity, target.GetComponent<controlObject>().actualAcceleration);
 
             Vector3 correct = Vector3.zero;
             if (correctOnParallax)
@@ -639,7 +647,7 @@ public class controlObject : MonoBehaviour
 
     void calcAttackAngle()
     {
-        attackAngle = Vector3.Angle(transform.forward, rb.velocity);
+        attackAngle = Vector3.Angle(transform.forward, rb.linearVelocity);
     }
 
     void renderTransformGizmos()
@@ -773,6 +781,11 @@ public class controlObject : MonoBehaviour
                 upDown.transform.localRotation = Quaternion.Euler(-maxControlPlaneAngle, 0, 0);
         }
     }
+    
+    void UpdateCLOS()
+    {
+
+    }
 
     void rotateControlPlaneByMouse() // use for rocket aiming too (not only rotate by mouse)
     {
@@ -787,19 +800,61 @@ public class controlObject : MonoBehaviour
                 targetAcceleration = target.GetComponent<controlObject>().actualAcceleration;
             }
             catch { }
-            aimPosition = Shared.CalculateAim2(target.transform.position, target.GetComponent<controlObject>().rb.velocity, transform.position, rb.velocity.magnitude, Vector3.zero, targetAcceleration);
-            Vector3 direction = aimPosition - transform.position;
+            Vector3 direction = Vector3.zero;
+            switch (aimingType) // <-- добавляем проверку типа наведения
+            {
+                case AimingType.Direct:
+                    // Прямое наведение на цель (берём её текущую позицию)
+                    aimPosition = target.transform.position;
+                    direction = aimPosition - transform.position;
+                    break;
 
-            //yAngleBetweenForwardAndDirectionCircle = Shared.AngleOffAroundAxis(direction, transform.forward, transform.up, true);
-            //xAngleBetweenForwardAndDirectionCircle = Shared.AngleOffAroundAxis(direction, transform.forward, transform.right, true);
+                case AimingType.Lead:
+                    // Наведение на упреждение (как было)
+                    aimPosition = Shared.CalculateAim2(
+                        target.transform.position,
+                        target.GetComponent<controlObject>().rb.linearVelocity,
+                        transform.position,
+                        rb.linearVelocity.magnitude,
+                        Vector3.zero,
+                        targetAcceleration
+                    );
+                    direction = aimPosition - transform.position;
+                    break;
 
-            yAngleBetweenForwardAndDirectionCircle = Shared.AngleOffAroundAxis(direction, rb.velocity, transform.up, true);
-            xAngleBetweenForwardAndDirectionCircle = Shared.AngleOffAroundAxis(direction, rb.velocity, transform.right, true);
+                case AimingType.CLOS:
+                    UpdateCLOS();
+                    return;
+                    // // Найти пусковую установку по имени
+                    // GameObject launcher = GameObject.Find("rocketLauncher");
+                    // Vector3 launcherPos = launcher.transform.position;
+                    // Vector3 targetPos = target.transform.position;
+                    //
+                    // // Вектор линии от пусковой установки к цели
+                    // Vector3 launcherToTarget = targetPos - launcherPos;
+                    //
+                    // // Текущее смещение ракеты от линии
+                    // Vector3 rocketToLine = transform.position - launcherPos;
+                    //
+                    // // Проекция ракеты на линию
+                    // Vector3 closestPointOnLine = launcherPos + Vector3.Project(rocketToLine, launcherToTarget);
+                    //
+                    // // aimPosition — точка на линии, немного вперед по линии, чтобы ракета двигалась
+                    // aimPosition = closestPointOnLine + launcherToTarget.normalized * 1500;
+                    //
+                    // // direction используется ниже для углов
+                    // direction = aimPosition - transform.position;
+                    // break;
+
+            }
+
+            yAngleBetweenForwardAndDirectionCircle = Shared.AngleOffAroundAxis(direction, rb.linearVelocity, transform.up, true);
+            xAngleBetweenForwardAndDirectionCircle = Shared.AngleOffAroundAxis(direction, rb.linearVelocity, transform.right, true);
         }
         else if (needTurnToTarget && target)
         {
-            Vector3 targetSpeed = target.GetComponent<Rigidbody>().velocity;
-            Vector3 aimPositionForBot = Shared.CalculateAim(target.transform.position, targetSpeed, transform.position, bullet.initBulletSpeed, rb.velocity, target.GetComponent<controlObject>().actualAcceleration);
+            Vector3 targetSpeed = target.GetComponent<Rigidbody>().linearVelocity;
+            Vector3 aimPositionForBot = Shared.CalculateAim(target.transform.position, targetSpeed, transform.position, bullet.initBulletSpeed, rb.linearVelocity, target.GetComponent<controlObject>().actualAcceleration);
             // amendment - shoot little forward than aimPositionForBot, because plane does not have time to turn
             Vector3 amendment = (aimPositionForBot - target.transform.position) * 0.15f; // or maybe targetSpeed * 1.15 in Shared.CalculateAim
             aimPositionForBot += amendment;
@@ -850,7 +905,7 @@ public class controlObject : MonoBehaviour
         float correctResultLeftRight = correctPDResultAnimationCurve.Evaluate(Mathf.Abs(yAngleBetweenForwardAndDirectionCircle));
         if (tractionVectorControlEnabled)
         {
-            float value = correctPDResultTractionAnimationCurve.Evaluate(rb.velocity.magnitude);
+            float value = correctPDResultTractionAnimationCurve.Evaluate(rb.linearVelocity.magnitude);
             correctResultUpDown *= value;
             correctResultLeftRight *= value;
         }
@@ -859,8 +914,8 @@ public class controlObject : MonoBehaviour
         float PDLeftRightResult = Shared.PDController(yAngleBetweenForwardAndDirectionCircle, localAngularVelocity.y, pCoeffLeftRight * correctResultLeftRight, dCoeffLeftRight);
 
         // so that at high speeds it does not shake
-        PDUpDownResult    *= 1 - (rb.velocity.magnitude / 2000);
-        PDLeftRightResult *= 1 - (rb.velocity.magnitude / 2000);
+        PDUpDownResult    *= 1 - (rb.linearVelocity.magnitude / 2000);
+        PDLeftRightResult *= 1 - (rb.linearVelocity.magnitude / 2000);
 
         // so that the rocket does not spin in place
         if (isLaunchedRocket && target)
@@ -868,8 +923,8 @@ public class controlObject : MonoBehaviour
             PDUpDownResult    *= 1 - ((Mathf.Abs(attackAngle) * 1.7f + Mathf.Abs(localAngularVelocity.x) * 1.2f) / 350);
             PDLeftRightResult *= 1 - ((Mathf.Abs(attackAngle) * 1.7f + Mathf.Abs(localAngularVelocity.y) * 1.2f) / 350);
 
-            PDUpDownResult    *= 0.0000001f * Mathf.Pow(rb.velocity.magnitude, 2.4f) + 0.1f;
-            PDLeftRightResult *= 0.0000001f * Mathf.Pow(rb.velocity.magnitude, 2.4f) + 0.1f;
+            PDUpDownResult    *= 0.0000001f * Mathf.Pow(rb.linearVelocity.magnitude, 2.4f) + 0.1f;
+            PDLeftRightResult *= 0.0000001f * Mathf.Pow(rb.linearVelocity.magnitude, 2.4f) + 0.1f;
 
             PDResultDistanceAnimationCurveValue = PDResultDistanceAnimationCurve.Evaluate(Vector3.Distance(transform.position, aimPosition));
             if (counter > tickCountForRocketOffEngine)
@@ -1150,8 +1205,8 @@ public class controlObject : MonoBehaviour
 
     void calcAcceleration()
     {
-        actualAcceleration = (rb.velocity - prevVelocity) / Time.fixedDeltaTime;
-        prevVelocity = rb.velocity;
+        actualAcceleration = (rb.linearVelocity - prevVelocity) / Time.fixedDeltaTime;
+        prevVelocity = rb.linearVelocity;
 
         if (actualAcceleration.magnitude / Physics.gravity.magnitude > maxAcceleration)
             maxAcceleration = actualAcceleration.magnitude / Physics.gravity.magnitude;
@@ -1159,7 +1214,7 @@ public class controlObject : MonoBehaviour
 
     void calcTurnRadius()
     {
-        turnRadius = rb.velocity.magnitude * rb.velocity.magnitude / actualAcceleration.magnitude;
+        turnRadius = rb.linearVelocity.magnitude * rb.linearVelocity.magnitude / actualAcceleration.magnitude;
     }
 
     void calcJerk()
